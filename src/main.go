@@ -5,15 +5,21 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 var (
-	listfile   []string        //获取文件列表
-	imageTypes = "jpg,png,gif" //图片文件类型
+	listfile   []string                 //获取文件列表
+	imageTypes = ".jpg,.jpeg,.png,.gif" //图片文件类型
 
 	pathSeparator = "\\" //路径分割符
 	mapExt        map[string]bool
+	maxImage      = 500 //文件夹文件上限
+
+	mapFolder map[string]int //文件夹
+
+	CurrentFolder string //当前目录
 )
 
 /*
@@ -21,6 +27,7 @@ var (
 */
 func init() {
 	mapExt = make(map[string]bool)
+	mapFolder = make(map[string]int)
 	ostype := os.Getenv("GOOS") // 获取系统类型
 
 	if ostype == "linux" {
@@ -31,7 +38,6 @@ func init() {
 	for _, val := range imageExts {
 		mapExt[val] = true
 	}
-
 }
 
 /*
@@ -39,9 +45,6 @@ func init() {
 */
 func isIimage(fileName string) bool {
 	ext := getFileExt(fileName)
-
-	fmt.Printf("fileName=%s,ext=%s\n", fileName, ext)
-
 	_, ok := mapExt[ext]
 	return ok
 }
@@ -70,11 +73,57 @@ func Listfunc(path string, f os.FileInfo, err error) error {
 	strRet += path //+ "\r\n"
 
 	if isIimage(strRet) {
-		listfile = append(listfile, strRet) //将目录push到listfile []string中
-		fmt.Println("发现图片：", strRet)        //list the file
+		//listfile = append(listfile, strRet) //将目录push到listfile []string中
+		fmt.Println("发现图片：", path) //list the file
+
+		//转存图片
+		saveToFolder(path)
 	}
 	return nil
 
+}
+
+func saveToFolder(fullFilename string) {
+	//获取照片拍摄日期
+	folder := getCreateTimeByFullFilename(fullFilename)
+
+	savePath := CurrentFolder + pathSeparator + folder
+
+	val, ok := mapFolder[folder]
+
+	if !ok {
+		//建立文件夹
+		err := os.Mkdir(savePath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("mkdir failed![%v]\n", err)
+			return
+		}
+
+		mapFolder[folder] = 0
+	}
+
+	if val%500 == 0 && val > 0 {
+		//文件夹重命名
+		os.Rename(savePath, savePath+"_"+strconv.Itoa(val/500))
+		os.Mkdir(savePath, os.ModePerm)
+	}
+
+	newFileName := filepath.Base(fullFilename)
+	saveFileName := savePath + pathSeparator + newFileName
+
+	//移动文件
+	err := os.Rename(fullFilename, saveFileName)
+
+	if err != nil {
+		fmt.Printf("\n err=%s# \n Path1=%s \n path2=%s \n", err, fullFilename, saveFileName)
+		return
+	}
+
+	mapFolder[folder]++
+}
+
+func getCreateTimeByFullFilename(fullFilename string) string {
+	return "2018-10-26"
 }
 
 func ListFileFunc(p []string) {
@@ -94,8 +143,10 @@ func main() {
 
 	fmt.Println("正在获取当前文件夹下图片数量 ...")
 
-	getFileList(dir)
-	ListFileFunc(listfile)
+	CurrentFolder = dir
+
+	getFileList(CurrentFolder)
+	//ListFileFunc(listfile)
 
 }
 
