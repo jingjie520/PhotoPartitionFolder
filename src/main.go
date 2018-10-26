@@ -10,15 +10,12 @@ import (
 )
 
 var (
-	imageTypes = ".jpg,.jpeg,.png,.gif" //图片文件类型
-
-	pathSeparator = "\\" //路径分割符
+	imageTypes    = ".jpg,.jpeg,.png,.gif" //图片文件类型
+	pathSeparator = "\\"                   //路径分割符
 	mapExt        map[string]bool
-	maxImage      = 500 //文件夹文件上限
-
-	mapFolder map[string]int //文件夹
-
-	CurrentFolder string //当前目录
+	maxImage      = 500          //文件夹文件上限
+	mapFolder     map[string]int //文件夹
+	currentFolder string         //当前目录
 )
 
 /*
@@ -49,14 +46,14 @@ func isIimage(fileName string) bool {
 }
 
 func getFileList(path string) string {
-	err := filepath.Walk(path, Listfunc)
+	err := filepath.Walk(path, listfunc)
 	if err != nil {
 		fmt.Printf("filepath.Walk() returned %v\n", err)
 	}
 	return " "
 }
 
-func Listfunc(path string, f os.FileInfo, err error) error {
+func listfunc(path string, f os.FileInfo, err error) error {
 	if isIimage(path) {
 		fmt.Println("发现图片：", path) //list the file
 		//转存图片
@@ -69,7 +66,7 @@ func saveToFolder(fullFilename string) {
 	//获取照片拍摄日期
 	folder := getCreateTimeByFullFilename(fullFilename)
 
-	savePath := CurrentFolder + pathSeparator + folder
+	savePath := currentFolder + pathSeparator + folder
 
 	val, ok := mapFolder[folder]
 
@@ -105,6 +102,9 @@ func saveToFolder(fullFilename string) {
 }
 
 func getCreateTimeByFullFilename(fullFilename string) string {
+
+	//业务未实现
+
 	return "2018-10-26"
 }
 
@@ -118,9 +118,9 @@ func main() {
 
 	fmt.Println("正在获取当前文件夹下图片数量 ...")
 
-	CurrentFolder = dir
+	currentFolder = dir
 
-	getFileList(CurrentFolder)
+	getFileList(currentFolder)
 
 }
 
