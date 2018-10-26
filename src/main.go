@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	listfile   []string                 //获取文件列表
 	imageTypes = ".jpg,.jpeg,.png,.gif" //图片文件类型
 
 	pathSeparator = "\\" //路径分割符
@@ -58,29 +57,12 @@ func getFileList(path string) string {
 }
 
 func Listfunc(path string, f os.FileInfo, err error) error {
-	var strRet string
-	strRet, _ = os.Getwd()
-
-	strRet += pathSeparator
-
-	if f == nil {
-		return err
-	}
-	if f.IsDir() {
-		return nil
-	}
-
-	strRet += path //+ "\r\n"
-
-	if isIimage(strRet) {
-		//listfile = append(listfile, strRet) //将目录push到listfile []string中
+	if isIimage(path) {
 		fmt.Println("发现图片：", path) //list the file
-
 		//转存图片
 		saveToFolder(path)
 	}
 	return nil
-
 }
 
 func saveToFolder(fullFilename string) {
@@ -126,13 +108,6 @@ func getCreateTimeByFullFilename(fullFilename string) string {
 	return "2018-10-26"
 }
 
-func ListFileFunc(p []string) {
-	for index, value := range p {
-		fmt.Println("Index = ", index, "Value = ", value)
-	}
-
-}
-
 func main() {
 	//获取当前目录
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -146,7 +121,6 @@ func main() {
 	CurrentFolder = dir
 
 	getFileList(CurrentFolder)
-	//ListFileFunc(listfile)
 
 }
 
