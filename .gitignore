@@ -3,4 +3,4 @@ bin/
 pkg/
 log/
 src/debug
-.code-workspace
+*.code-workspace
